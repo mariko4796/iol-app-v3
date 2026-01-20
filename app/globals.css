@@ -1,0 +1,176 @@
+/* app/globals.css */
+
+:root {
+  --background: #f3f4f6;
+  --foreground: #111827;
+  --primary: #00083d;
+  --header-bg: #0a0a1a;
+  --footer-bg: #1a1a2e;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+  min-height: 100vh;
+}
+
+/* ========== ヘッダー（グラデーション追加） ========== */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0f0f2a 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+}
+
+.app-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-header-logo {
+  width: 36px;
+  height: 36px;
+}
+
+.app-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.app-header-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-btn {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1px solid #3a3a5a;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  color: #d1d5db;
+  transition: all 0.2s;
+}
+
+.header-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.header-btn-staff {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #4a4a6a;
+  background: transparent;
+  font-size: 11px;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: all 0.2s;
+}
+
+.header-btn-staff:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d1d5db;
+}
+
+/* ========== フッター（eye-meetings風） ========== */
+.app-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--footer-bg);
+  padding: 16px;
+  z-index: 50;
+}
+
+.app-footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-footer-logo {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.app-footer-copy {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* ========== メインコンテンツ ========== */
+.main-content {
+  padding: 24px 16px;
+  padding-bottom: 100px; /* フッター分 */
+}
+
+/* ========== 画面/印刷切り替え ========== */
+.screen-only {
+  display: block !important;
+}
+
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  .screen-only {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .app-header,
+  .app-footer {
+    display: none !important;
+  }
+}
+
+/* ========== スマホ対応 ========== */
+@media (max-width: 640px) {
+  .app-header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .app-header-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .header-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .app-header-title {
+    font-size: 16px;
+  }
+}
