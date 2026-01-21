@@ -8,25 +8,30 @@ export type ReasonTextParams = {
   finalKey: LensKey;
   answers: Answers;
   flags: DerivedFlags;
-  monoChoice?: MonoLensKey | null;
+  distanceChoice?: number | null;  // ← monoChoice から変更
   overridePremium?: boolean;
 };
 
-const distanceLabelMap: Record<MonoLensKey, string> = {
-  farMono: "遠方",
-  midMono: "中間",
-  nearMono: "近方",
+const distanceLabelMap: Record<number, string> = {
+  1: "遠方",
+  2: "遠方",
+  3: "中間",
+  4: "中間",
+  5: "近方",
+  6: "近方",
 };
 
+// 21〜22行目を修正
 export function generateReasonText(params: ReasonTextParams): string {
-  const { finalKey, answers, flags, monoChoice, overridePremium } = params;
+  const { finalKey, answers, flags, distanceChoice, overridePremium } = params;
 
   const isMono =
     finalKey === "farMono" || finalKey === "midMono" || finalKey === "nearMono";
   const isEDOF = finalKey === "EDOF";
   const isMF = finalKey === "MF";
 
-  const distanceLabelForMono = monoChoice ? distanceLabelMap[monoChoice] : "";
+  // 29行目を修正
+  const distanceLabelForMono = distanceChoice ? distanceLabelMap[distanceChoice] : "";
 
   const strongAllDistances =
     answers.q1 !== null && answers.q1 <= 2 &&

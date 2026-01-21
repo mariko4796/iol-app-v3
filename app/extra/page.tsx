@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAnswers } from "@/app/contexts/AnswersContext";
 import { computeScores } from "@/src/domain/lens/scoring/computeScores";
 import { decideNext, type ExtraMode } from "@/src/domain/lens/scoring/decideNext";
-import type { MonoLensKey } from "@/src/domain/lens/lensTypes";
+import { q8DistanceText } from "@/src/domain/lens/lensTypes";
 import { pageInner, questionTitle, mainButtonStyle, extraDescriptionText } from "@/src/ui/styles/ui";
 
 export default function ExtraPage() {
@@ -30,18 +30,18 @@ function ExtraPageInner() {
   const { flags } = result;
   const mode: ExtraMode = modeParam || "singleFocusChoice";
 
-  const [monoChoice, setMonoChoice] = useState<MonoLensKey | null>(null);
+  // singleFocusChoice: 1〜6は距離、7は自費希望
+  const [distanceChoice, setDistanceChoice] = useState<number | null>(null);
   const [premiumOverride, setPremiumOverride] = useState(false);
   const [premiumChoice, setPremiumChoice] = useState<"EDOF" | "MF" | null>(null);
-  const [wantsPremiumToo, setWantsPremiumToo] = useState(false);
 
   useEffect(() => {
     if (!modeParam) router.replace("/result");
   }, [modeParam, router]);
 
-  // 遷移処理を関数化
+  // 遷移処理
   const navigateNext = useCallback((choice: {
-    mono?: MonoLensKey | null;
+    distance?: number | null;
     premium?: "EDOF" | "MF" | null;
     override?: boolean;
     wantsPremium?: boolean;
@@ -52,8 +52,8 @@ function ExtraPageInner() {
           const next = decideNext(flags, { afterRetina, overridePremium: true });
           if (next.type === "extra") router.push(`/extra?mode=${next.mode}&overridePremium=1`);
           else router.push("/result?overridePremium=1");
-        } else if (choice.mono) {
-          router.push(`/result?mono=${choice.mono}`);
+        } else if (choice.distance) {
+          router.push(`/result?distance=${choice.distance}`);
         }
         return;
       }
@@ -72,8 +72,8 @@ function ExtraPageInner() {
           if (hasHaloNightRisk) router.push("/extra?mode=haloNight&afterRetina=1&overridePremium=1");
           else if (flags.requiresExtraByPremiumCompare) router.push("/extra?mode=premiumCompare&afterRetina=1&overridePremium=1");
           else router.push("/result?overridePremium=1");
-        } else if (choice.mono) {
-          router.push(`/result?mono=${choice.mono}`);
+        } else if (choice.distance) {
+          router.push(`/result?distance=${choice.distance}`);
         }
         return;
       }
@@ -89,30 +89,29 @@ function ExtraPageInner() {
           } else {
             router.push("/result?overridePremium=1");
           }
-        } else if (choice.mono) {
-          router.push(`/result?mono=${choice.mono}`);
+        } else if (choice.distance) {
+          router.push(`/result?distance=${choice.distance}`);
         }
       }
     }, 400);
   }, [mode, flags, afterRetina, overridePremiumFlag, router]);
 
   // 選択ハンドラー
-  const handleMonoSelect = (mono: MonoLensKey) => {
-    setMonoChoice(mono);
-    setWantsPremiumToo(false);
+  const handleDistanceSelect = (dist: number) => {
+    setDistanceChoice(dist);
     setPremiumOverride(false);
-    navigateNext({ mono });
+    navigateNext({ distance: dist });
   };
 
   const handleWantsPremium = () => {
-    setWantsPremiumToo(true);
-    setMonoChoice(null);
+    setDistanceChoice(null);
+    setPremiumOverride(false);
     navigateNext({ wantsPremium: true });
   };
 
   const handlePremiumOverride = () => {
     setPremiumOverride(true);
-    setMonoChoice(null);
+    setDistanceChoice(null);
     navigateNext({ override: true });
   };
 
@@ -120,6 +119,9 @@ function ExtraPageInner() {
     setPremiumChoice(choice);
     navigateNext({ premium: choice });
   };
+
+  // 距離選択肢（6つ）
+  const distanceOptions = [1, 2, 3, 4, 5, 6] as const;
 
   return (
     <section style={pageInner}>
@@ -131,10 +133,21 @@ function ExtraPageInner() {
           <p style={{ ...extraDescriptionText, marginTop: 8 }}>今回のご回答では、遠方・中間・近方のすべてについて<strong>「裸眼で見たい」</strong>というご希望が強く出ています。しかし単焦点レンズでは、このすべてを同時に満たすことはできません。</p>
           <p style={{ ...extraDescriptionText, marginTop: 8 }}>そのため、<strong>最も大切な距離をもう一度お選びください。</strong></p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(monoChoice === "farMono" && !wantsPremiumToo)} onClick={() => handleMonoSelect("farMono")}>遠方を優先したい（外出・運転を楽にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "midMono" && !wantsPremiumToo)} onClick={() => handleMonoSelect("midMono")}>中間を優先したい（PC・料理などを快適にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "nearMono" && !wantsPremiumToo)} onClick={() => handleMonoSelect("nearMono")}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
-            <button style={mainButtonStyle(wantsPremiumToo)} onClick={handleWantsPremium}>自費（EDOF / 多焦点）も検討したい</button>
+            {distanceOptions.map((dist) => (
+              <button
+                key={dist}
+                style={mainButtonStyle(distanceChoice === dist)}
+                onClick={() => handleDistanceSelect(dist)}
+              >
+                {q8DistanceText[dist]}
+              </button>
+            ))}
+            <button
+              style={mainButtonStyle(distanceChoice === null && !premiumOverride)}
+              onClick={handleWantsPremium}
+            >
+              自費（EDOF / 多焦点）も検討したい
+            </button>
           </div>
         </>
       )}
@@ -147,10 +160,18 @@ function ExtraPageInner() {
           <p style={{ marginTop: 8 }}>また、<strong>白内障手術では水晶体の濁りは改善しますが、網膜や視神経そのものの病気が良くなるわけではありません。</strong></p>
           <p style={{ marginTop: 8 }}>そのうえで、<strong>「どの距離を優先した単焦点レンズにするか」または「リスクを理解したうえで多焦点/EDOFを希望するか」</strong>をここで確認させてください。</p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(monoChoice === "farMono" && !premiumOverride)} onClick={() => handleMonoSelect("farMono")}>遠方を優先したい（外出・運転を楽にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "midMono" && !premiumOverride)} onClick={() => handleMonoSelect("midMono")}>中間を優先したい（PC・料理などを快適にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "nearMono" && !premiumOverride)} onClick={() => handleMonoSelect("nearMono")}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
-            <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>網膜や視神経の病気によるリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する</button>
+            {distanceOptions.map((dist) => (
+              <button
+                key={dist}
+                style={mainButtonStyle(distanceChoice === dist && !premiumOverride)}
+                onClick={() => handleDistanceSelect(dist)}
+              >
+                {q8DistanceText[dist]}
+              </button>
+            ))}
+            <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>
+              網膜や視神経の病気によるリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する
+            </button>
           </div>
         </>
       )}
@@ -162,10 +183,18 @@ function ExtraPageInner() {
           <p style={{ marginTop: 8 }}>多焦点レンズや EDOF レンズでは、<strong>夜間のライトがにじんだり、ギラつき（ハロー・グレア）が出やすくなる</strong>ことがあります。特に夜間運転が多い方では、<strong>運転時の安全性に影響する可能性</strong>があるため、一般的には<strong>単焦点レンズを第一選択とします。</strong></p>
           <p style={{ marginTop: 8 }}>そのうえで、<strong>「どの距離を優先した単焦点レンズにするか」または「夜間の見え方のリスクを理解したうえで多焦点/EDOFを希望するか」</strong>をここで確認させてください。</p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(monoChoice === "farMono" && !premiumOverride)} onClick={() => handleMonoSelect("farMono")}>遠方を優先したい（外出・運転を楽にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "midMono" && !premiumOverride)} onClick={() => handleMonoSelect("midMono")}>中間を優先したい（PC・料理などを快適にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "nearMono" && !premiumOverride)} onClick={() => handleMonoSelect("nearMono")}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
-            <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>夜間の見え方（ハロー・グレアなど）のリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する</button>
+            {distanceOptions.map((dist) => (
+              <button
+                key={dist}
+                style={mainButtonStyle(distanceChoice === dist && !premiumOverride)}
+                onClick={() => handleDistanceSelect(dist)}
+              >
+                {q8DistanceText[dist]}
+              </button>
+            ))}
+            <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>
+              夜間の見え方（ハロー・グレアなど）のリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する
+            </button>
           </div>
         </>
       )}
@@ -181,8 +210,12 @@ function ExtraPageInner() {
           </ul>
           <p style={{ marginTop: 8 }}>どの点をより優先したいかに応じて、<strong>どちらのレンズを優先するかをここでお選びください。</strong></p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(premiumChoice === "EDOF")} onClick={() => handlePremiumChoice("EDOF")}>EDOF レンズを優先したい（夜間のギラつきはできるだけ少なく、遠方〜中間をバランスよく見たい）</button>
-            <button style={mainButtonStyle(premiumChoice === "MF")} onClick={() => handlePremiumChoice("MF")}>多焦点レンズを優先したい（スマホ・読書など近方もできるだけ裸眼でしたい）</button>
+            <button style={mainButtonStyle(premiumChoice === "EDOF")} onClick={() => handlePremiumChoice("EDOF")}>
+              EDOF レンズを優先したい（夜間のギラつきはできるだけ少なく、遠方〜中間をバランスよく見たい）
+            </button>
+            <button style={mainButtonStyle(premiumChoice === "MF")} onClick={() => handlePremiumChoice("MF")}>
+              多焦点レンズを優先したい（スマホ・読書など近方もできるだけ裸眼でしたい）
+            </button>
           </div>
         </>
       )}

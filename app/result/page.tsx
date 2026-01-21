@@ -7,8 +7,8 @@ import { useAnswers } from "@/app/contexts/AnswersContext";
 import { questionKeys, type QuestionKey } from "@/src/state/types";
 import { questionText, choiceLabels, questionNotes } from "@/src/data/questions/questionData";
 import { computeScores } from "@/src/domain/lens/scoring/computeScores";
-import { lensLabel, lensTypeText, distanceText } from "@/src/domain/lens/lensTypes";
-import type { LensKey, MonoLensKey } from "@/src/domain/lens/lensTypes";
+import { lensLabel, lensTypeText, distanceText, q8DistanceText } from "@/src/domain/lens/lensTypes";
+import type { LensKey } from "@/src/domain/lens/lensTypes";
 import { generateReasonText } from "@/src/domain/lens/explain/reasonText";
 import { generateWarnings } from "@/src/domain/lens/explain/warnings";
 import { savePrintLog } from "@/src/lib/storage/printLogs";
@@ -26,10 +26,9 @@ function ResultInner() {
   const { answers } = useAnswers();
   const searchParams = useSearchParams();
 
-  const monoParam = searchParams.get("mono");
-  const monoChoice: MonoLensKey | null =
-    monoParam === "farMono" || monoParam === "midMono" || monoParam === "nearMono"
-      ? (monoParam as MonoLensKey) : null;
+  // URLパラメータ
+  const distanceParam = searchParams.get("distance");
+  const distanceChoice = distanceParam ? parseInt(distanceParam, 10) : null;
 
   const overridePremium = searchParams.get("overridePremium") === "1";
   const premiumParam = searchParams.get("premium");
@@ -39,16 +38,31 @@ function ResultInner() {
   const result = computeScores(answers);
   const { top1, exceptionMessages, flags } = result;
 
-  const finalKey: LensKey | null =
-    (monoChoice as LensKey | null) ?? (premiumChoice as LensKey | null) ?? (top1 ? (top1.key as LensKey) : null);
+  // 単焦点かどうか判定
+  const isMono = distanceChoice !== null && distanceChoice >= 1 && distanceChoice <= 6;
+  const isEDOF = premiumChoice === "EDOF" || (!isMono && !premiumChoice && top1?.key === "EDOF");
+  const isMF = premiumChoice === "MF" || (!isMono && !premiumChoice && top1?.key === "MF");
+
+  // 最終レンズキー
+  let finalKey: LensKey | null = null;
+  if (isMono) {
+    // 距離に応じて farMono/midMono/nearMono を設定
+    if (distanceChoice <= 2) finalKey = "farMono";
+    else if (distanceChoice <= 4) finalKey = "midMono";
+    else finalKey = "nearMono";
+  } else if (premiumChoice) {
+    finalKey = premiumChoice;
+  } else if (top1) {
+    finalKey = top1.key;
+  }
 
   const finalLabel = finalKey ? lensLabel[finalKey] : "未決定";
   const finalLensType = finalKey ? lensTypeText[finalKey] : "";
-  const finalDistanceText = finalKey ? distanceText[finalKey] : "";
 
-  const isMono = finalKey === "farMono" || finalKey === "midMono" || finalKey === "nearMono";
-  const isEDOF = finalKey === "EDOF";
-  const isMF = finalKey === "MF";
+  // 単焦点の場合は選択した具体的距離、それ以外は従来のdistanceText
+  const finalDistanceText = isMono && distanceChoice
+    ? q8DistanceText[distanceChoice]
+    : (finalKey ? distanceText[finalKey] : "");
 
   let hopeFar = false, hopeMid = false, hopeNear = false;
   if (finalKey === "farMono") hopeFar = true;
@@ -57,19 +71,20 @@ function ResultInner() {
   else if (finalKey === "EDOF") { hopeFar = true; hopeMid = true; }
   else if (finalKey === "MF") { hopeFar = true; hopeMid = true; hopeNear = true; }
 
-  const reasonText = finalKey ? generateReasonText({ finalKey, answers, flags, monoChoice, overridePremium }) : "";
+  const reasonText = finalKey ? generateReasonText({ finalKey, answers, flags, distanceChoice, overridePremium }) : "";
   const { visionWarning, glassesWarning, retinaWarning } = finalKey
     ? generateWarnings({ finalKey, answers, flags }) : { visionWarning: "", glassesWarning: "", retinaWarning: "" };
 
   const extraConfirmations: string[] = [];
-  const distanceLabelMap: Record<MonoLensKey, string> = { farMono: "遠方", midMono: "中間", nearMono: "近方" };
-  const distanceLabelForMono = monoChoice ? distanceLabelMap[monoChoice] : "";
   const haloNightRisk = flags.haloAbsoluteNo || flags.nightDrivingOften;
 
+  // Q8との矛盾チェック
+  if (isMono && distanceChoice && answers.q8 && distanceChoice !== answers.q8) {
+    extraConfirmations.push(`【Q8と矛盾】Q8では「${q8DistanceText[answers.q8]}」を選択しましたが、追加質問では「${q8DistanceText[distanceChoice]}」を選択しました。`);
+  }
+
   if (flags.costPriorityHigh && isMono) {
-    extraConfirmations.push(distanceLabelForMono
-      ? `【費用とレンズ選択】費用（保険適応内）を優先するご希望があり、保険適応内の単焦点レンズから「${distanceLabelForMono}」を優先するレンズを選択した。`
-      : "【費用とレンズ選択】費用（保険適応内）を優先するご希望があり、保険適応内の単焦点レンズを選択した。");
+    extraConfirmations.push(`【費用とレンズ選択】費用（保険適応内）を優先するご希望があり、保険適応内の単焦点レンズから「${q8DistanceText[distanceChoice!]}」を優先するレンズを選択した。`);
   }
 
   if (flags.hasRetinaDisease) {
