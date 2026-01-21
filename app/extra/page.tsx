@@ -1,13 +1,13 @@
 // app/extra/page.tsx
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAnswers } from "@/app/contexts/AnswersContext";
 import { computeScores } from "@/src/domain/lens/scoring/computeScores";
 import { decideNext, type ExtraMode } from "@/src/domain/lens/scoring/decideNext";
 import type { MonoLensKey } from "@/src/domain/lens/lensTypes";
-import { pageInner, questionTitle, mainButtonStyle, nextButtonStyle, extraDescriptionText } from "@/src/ui/styles/ui";
+import { pageInner, questionTitle, mainButtonStyle, extraDescriptionText } from "@/src/ui/styles/ui";
 
 export default function ExtraPage() {
   return (
@@ -39,52 +39,86 @@ function ExtraPageInner() {
     if (!modeParam) router.replace("/result");
   }, [modeParam, router]);
 
-  let hasSelection = false;
-  if (mode === "premiumCompare") hasSelection = premiumChoice !== null;
-  else if (mode === "singleFocusChoice") hasSelection = monoChoice !== null || wantsPremiumToo;
-  else hasSelection = premiumOverride || monoChoice !== null;
+  // 遷移処理を関数化
+  const navigateNext = useCallback((choice: {
+    mono?: MonoLensKey | null;
+    premium?: "EDOF" | "MF" | null;
+    override?: boolean;
+    wantsPremium?: boolean;
+  }) => {
+    setTimeout(() => {
+      if (mode === "singleFocusChoice") {
+        if (choice.wantsPremium) {
+          const next = decideNext(flags, { afterRetina, overridePremium: true });
+          if (next.type === "extra") router.push(`/extra?mode=${next.mode}&overridePremium=1`);
+          else router.push("/result?overridePremium=1");
+        } else if (choice.mono) {
+          router.push(`/result?mono=${choice.mono}`);
+        }
+        return;
+      }
 
-  const handleNext = () => {
-    if (!hasSelection) return;
+      if (mode === "premiumCompare" && choice.premium) {
+        const params = new URLSearchParams();
+        params.set("premium", choice.premium);
+        if (overridePremiumFlag) params.set("overridePremium", "1");
+        router.push(`/result?${params.toString()}`);
+        return;
+      }
 
-    if (mode === "singleFocusChoice") {
-      if (wantsPremiumToo) {
-        const next = decideNext(flags, { afterRetina, overridePremium: true });
-        if (next.type === "extra") router.push(`/extra?mode=${next.mode}&overridePremium=1`);
-        else router.push("/result?overridePremium=1");
-      } else if (monoChoice) router.push(`/result?mono=${monoChoice}`);
-      return;
-    }
+      if (mode === "retina") {
+        if (choice.override) {
+          const hasHaloNightRisk = flags.haloAbsoluteNo || flags.nightDrivingOften;
+          if (hasHaloNightRisk) router.push("/extra?mode=haloNight&afterRetina=1&overridePremium=1");
+          else if (flags.requiresExtraByPremiumCompare) router.push("/extra?mode=premiumCompare&afterRetina=1&overridePremium=1");
+          else router.push("/result?overridePremium=1");
+        } else if (choice.mono) {
+          router.push(`/result?mono=${choice.mono}`);
+        }
+        return;
+      }
 
-    if (mode === "premiumCompare" && premiumChoice) {
-      const params = new URLSearchParams();
-      params.set("premium", premiumChoice);
-      if (overridePremiumFlag) params.set("overridePremium", "1");
-      router.push(`/result?${params.toString()}`);
-      return;
-    }
+      if (mode === "haloNight") {
+        if (choice.override) {
+          if (flags.requiresExtraByPremiumCompare) {
+            const params = new URLSearchParams();
+            params.set("mode", "premiumCompare");
+            if (afterRetina) params.set("afterRetina", "1");
+            params.set("overridePremium", "1");
+            router.push(`/extra?${params.toString()}`);
+          } else {
+            router.push("/result?overridePremium=1");
+          }
+        } else if (choice.mono) {
+          router.push(`/result?mono=${choice.mono}`);
+        }
+      }
+    }, 400);
+  }, [mode, flags, afterRetina, overridePremiumFlag, router]);
 
-    if (mode === "retina") {
-      if (premiumOverride) {
-        const hasHaloNightRisk = flags.haloAbsoluteNo || flags.nightDrivingOften;
-        if (hasHaloNightRisk) router.push("/extra?mode=haloNight&afterRetina=1&overridePremium=1");
-        else if (flags.requiresExtraByPremiumCompare) router.push("/extra?mode=premiumCompare&afterRetina=1&overridePremium=1");
-        else router.push("/result?overridePremium=1");
-      } else if (monoChoice) router.push(`/result?mono=${monoChoice}`);
-      return;
-    }
+  // 選択ハンドラー
+  const handleMonoSelect = (mono: MonoLensKey) => {
+    setMonoChoice(mono);
+    setWantsPremiumToo(false);
+    setPremiumOverride(false);
+    navigateNext({ mono });
+  };
 
-    if (mode === "haloNight") {
-      if (premiumOverride) {
-        if (flags.requiresExtraByPremiumCompare) {
-          const params = new URLSearchParams();
-          params.set("mode", "premiumCompare");
-          if (afterRetina) params.set("afterRetina", "1");
-          params.set("overridePremium", "1");
-          router.push(`/extra?${params.toString()}`);
-        } else router.push("/result?overridePremium=1");
-      } else if (monoChoice) router.push(`/result?mono=${monoChoice}`);
-    }
+  const handleWantsPremium = () => {
+    setWantsPremiumToo(true);
+    setMonoChoice(null);
+    navigateNext({ wantsPremium: true });
+  };
+
+  const handlePremiumOverride = () => {
+    setPremiumOverride(true);
+    setMonoChoice(null);
+    navigateNext({ override: true });
+  };
+
+  const handlePremiumChoice = (choice: "EDOF" | "MF") => {
+    setPremiumChoice(choice);
+    navigateNext({ premium: choice });
   };
 
   return (
@@ -97,10 +131,10 @@ function ExtraPageInner() {
           <p style={{ ...extraDescriptionText, marginTop: 8 }}>今回のご回答では、遠方・中間・近方のすべてについて<strong>「裸眼で見たい」</strong>というご希望が強く出ています。しかし単焦点レンズでは、このすべてを同時に満たすことはできません。</p>
           <p style={{ ...extraDescriptionText, marginTop: 8 }}>そのため、<strong>最も大切な距離をもう一度お選びください。</strong></p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(monoChoice === "farMono" && !wantsPremiumToo)} onClick={() => { setMonoChoice("farMono"); setWantsPremiumToo(false); }}>遠方を優先したい（外出・運転を楽にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "midMono" && !wantsPremiumToo)} onClick={() => { setMonoChoice("midMono"); setWantsPremiumToo(false); }}>中間を優先したい（PC・料理などを快適にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "nearMono" && !wantsPremiumToo)} onClick={() => { setMonoChoice("nearMono"); setWantsPremiumToo(false); }}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
-            <button style={mainButtonStyle(wantsPremiumToo)} onClick={() => { setWantsPremiumToo(true); setMonoChoice(null); }}>自費（EDOF / 多焦点）も検討したい</button>
+            <button style={mainButtonStyle(monoChoice === "farMono" && !wantsPremiumToo)} onClick={() => handleMonoSelect("farMono")}>遠方を優先したい（外出・運転を楽にしたい）</button>
+            <button style={mainButtonStyle(monoChoice === "midMono" && !wantsPremiumToo)} onClick={() => handleMonoSelect("midMono")}>中間を優先したい（PC・料理などを快適にしたい）</button>
+            <button style={mainButtonStyle(monoChoice === "nearMono" && !wantsPremiumToo)} onClick={() => handleMonoSelect("nearMono")}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
+            <button style={mainButtonStyle(wantsPremiumToo)} onClick={handleWantsPremium}>自費（EDOF / 多焦点）も検討したい</button>
           </div>
         </>
       )}
@@ -113,10 +147,10 @@ function ExtraPageInner() {
           <p style={{ marginTop: 8 }}>また、<strong>白内障手術では水晶体の濁りは改善しますが、網膜や視神経そのものの病気が良くなるわけではありません。</strong></p>
           <p style={{ marginTop: 8 }}>そのうえで、<strong>「どの距離を優先した単焦点レンズにするか」または「リスクを理解したうえで多焦点/EDOFを希望するか」</strong>をここで確認させてください。</p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(monoChoice === "farMono" && !premiumOverride)} onClick={() => { setMonoChoice("farMono"); setPremiumOverride(false); }}>遠方を優先したい（外出・運転を楽にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "midMono" && !premiumOverride)} onClick={() => { setMonoChoice("midMono"); setPremiumOverride(false); }}>中間を優先したい（PC・料理などを快適にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "nearMono" && !premiumOverride)} onClick={() => { setMonoChoice("nearMono"); setPremiumOverride(false); }}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
-            <button style={mainButtonStyle(premiumOverride)} onClick={() => { setPremiumOverride(true); setMonoChoice(null); }}>網膜や視神経の病気によるリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する</button>
+            <button style={mainButtonStyle(monoChoice === "farMono" && !premiumOverride)} onClick={() => handleMonoSelect("farMono")}>遠方を優先したい（外出・運転を楽にしたい）</button>
+            <button style={mainButtonStyle(monoChoice === "midMono" && !premiumOverride)} onClick={() => handleMonoSelect("midMono")}>中間を優先したい（PC・料理などを快適にしたい）</button>
+            <button style={mainButtonStyle(monoChoice === "nearMono" && !premiumOverride)} onClick={() => handleMonoSelect("nearMono")}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
+            <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>網膜や視神経の病気によるリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する</button>
           </div>
         </>
       )}
@@ -128,10 +162,10 @@ function ExtraPageInner() {
           <p style={{ marginTop: 8 }}>多焦点レンズや EDOF レンズでは、<strong>夜間のライトがにじんだり、ギラつき（ハロー・グレア）が出やすくなる</strong>ことがあります。特に夜間運転が多い方では、<strong>運転時の安全性に影響する可能性</strong>があるため、一般的には<strong>単焦点レンズを第一選択とします。</strong></p>
           <p style={{ marginTop: 8 }}>そのうえで、<strong>「どの距離を優先した単焦点レンズにするか」または「夜間の見え方のリスクを理解したうえで多焦点/EDOFを希望するか」</strong>をここで確認させてください。</p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(monoChoice === "farMono" && !premiumOverride)} onClick={() => { setMonoChoice("farMono"); setPremiumOverride(false); }}>遠方を優先したい（外出・運転を楽にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "midMono" && !premiumOverride)} onClick={() => { setMonoChoice("midMono"); setPremiumOverride(false); }}>中間を優先したい（PC・料理などを快適にしたい）</button>
-            <button style={mainButtonStyle(monoChoice === "nearMono" && !premiumOverride)} onClick={() => { setMonoChoice("nearMono"); setPremiumOverride(false); }}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
-            <button style={mainButtonStyle(premiumOverride)} onClick={() => { setPremiumOverride(true); setMonoChoice(null); }}>夜間の見え方（ハロー・グレアなど）のリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する</button>
+            <button style={mainButtonStyle(monoChoice === "farMono" && !premiumOverride)} onClick={() => handleMonoSelect("farMono")}>遠方を優先したい（外出・運転を楽にしたい）</button>
+            <button style={mainButtonStyle(monoChoice === "midMono" && !premiumOverride)} onClick={() => handleMonoSelect("midMono")}>中間を優先したい（PC・料理などを快適にしたい）</button>
+            <button style={mainButtonStyle(monoChoice === "nearMono" && !premiumOverride)} onClick={() => handleMonoSelect("nearMono")}>近方を優先したい（スマホ・読書を裸眼でしたい）</button>
+            <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>夜間の見え方（ハロー・グレアなど）のリスクを理解したうえで、多焦点レンズまたは EDOF レンズを希望する</button>
           </div>
         </>
       )}
@@ -147,15 +181,11 @@ function ExtraPageInner() {
           </ul>
           <p style={{ marginTop: 8 }}>どの点をより優先したいかに応じて、<strong>どちらのレンズを優先するかをここでお選びください。</strong></p>
           <div style={{ marginTop: 16 }}>
-            <button style={mainButtonStyle(premiumChoice === "EDOF")} onClick={() => setPremiumChoice("EDOF")}>EDOF レンズを優先したい（夜間のギラつきはできるだけ少なく、遠方〜中間をバランスよく見たい）</button>
-            <button style={mainButtonStyle(premiumChoice === "MF")} onClick={() => setPremiumChoice("MF")}>多焦点レンズを優先したい（スマホ・読書など近方もできるだけ裸眼でしたい）</button>
+            <button style={mainButtonStyle(premiumChoice === "EDOF")} onClick={() => handlePremiumChoice("EDOF")}>EDOF レンズを優先したい（夜間のギラつきはできるだけ少なく、遠方〜中間をバランスよく見たい）</button>
+            <button style={mainButtonStyle(premiumChoice === "MF")} onClick={() => handlePremiumChoice("MF")}>多焦点レンズを優先したい（スマホ・読書など近方もできるだけ裸眼でしたい）</button>
           </div>
         </>
       )}
-
-      {hasSelection && <p style={{ marginTop: 12, fontWeight: "bold" }}>👉 この内容でよろしければ「レンズ候補を見る」を押してください。</p>}
-
-      <button style={nextButtonStyle(hasSelection)} disabled={!hasSelection} onClick={handleNext}>レンズ候補を見る</button>
     </section>
   );
 }

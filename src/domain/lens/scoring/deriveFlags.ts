@@ -29,10 +29,10 @@ export function deriveFlags(answers: Answers, rawScores: Scores): DerivedFlags {
     answers.q10 === 1 || answers.q10 === 2 || answers.q10 === 3;
 
   // Q5: ハロー（v3の連番）
-  const haloAbsoluteNo = answers.q5 === 1;
+  const haloAbsoluteNo = answers.q5 === 1 || answers.q5 === 2;
 
   // Q9: 夜間運転（v3の連番、旧Q10）
-  const nightDrivingOften = answers.q9 === 1;
+  const nightDrivingOften = answers.q9 === 1 || answers.q9 === 2;
 
   // Q6: メガネ
   const veryHateGlasses = answers.q6 === 1;
