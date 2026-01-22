@@ -59,7 +59,7 @@ export function deriveFlags(answers: Answers, rawScores: Scores): DerivedFlags {
   const hasPremiumWish =
     strong2orMore || premiumRawTopIsEDOF || premiumRawTopIsMF;
 
-  const requiresExtraByCost = costPriorityHigh;
+  const requiresExtraByCost = costPriorityHigh && strong2orMore;
   const requiresExtraByRetina = hasRetinaDisease;
   const requiresExtraByHaloNight = haloAbsoluteNo || nightDrivingOften;
   const requiresExtraByPremiumCompare =
