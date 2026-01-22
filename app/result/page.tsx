@@ -28,8 +28,6 @@ function ResultInner() {
 
   // URLパラメータ
   const distanceParam = searchParams.get("distance");
-  const distanceChoice = distanceParam ? parseInt(distanceParam, 10) : null;
-
   const overridePremium = searchParams.get("overridePremium") === "1";
   const premiumParam = searchParams.get("premium");
   const premiumChoice: LensKey | null =
@@ -37,6 +35,16 @@ function ResultInner() {
 
   const result = computeScores(answers);
   const { top1, exceptionMessages, flags } = result;
+
+  // Q7=1,2（保険優先）かどうか
+  const costPriorityHigh = answers.q7 === 1 || answers.q7 === 2;
+
+  // ★ Q7=1,2（保険優先）かつ追加質問を経由していない場合、Q8の回答を距離として使用
+  const distanceChoice = distanceParam 
+    ? parseInt(distanceParam, 10) 
+    : (costPriorityHigh && answers.q8) 
+      ? answers.q8 
+      : null;
 
   // 単焦点かどうか判定
   const isMono = distanceChoice !== null && distanceChoice >= 1 && distanceChoice <= 6;
@@ -78,8 +86,8 @@ function ResultInner() {
   const extraConfirmations: string[] = [];
   const haloNightRisk = flags.haloAbsoluteNo || flags.nightDrivingOften;
 
-  // Q8との矛盾チェック
-  if (isMono && distanceChoice && answers.q8 && distanceChoice !== answers.q8) {
+  // Q8との矛盾チェック（追加質問を経由した場合のみ）
+  if (distanceParam && isMono && distanceChoice && answers.q8 && distanceChoice !== answers.q8) {
     extraConfirmations.push(`【Q8と矛盾】Q8では「${q8DistanceText[answers.q8]}」を選択しましたが、追加質問では「${q8DistanceText[distanceChoice]}」を選択しました。`);
   }
 

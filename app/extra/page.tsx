@@ -6,9 +6,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAnswers } from "@/app/contexts/AnswersContext";
 import { computeScores } from "@/src/domain/lens/scoring/computeScores";
 import { decideNext, type ExtraMode } from "@/src/domain/lens/scoring/decideNext";
-import { q8DistanceText } from "@/src/domain/lens/lensTypes";
 import { pageInner, questionTitle, mainButtonStyle, extraDescriptionText } from "@/src/ui/styles/ui";
 
+// 追加質問用の距離テキスト（q8DistanceTextとは別に定義）
+const extraDistanceText: Record<number, string> = {
+  1: "遠方（約5m以上）：道路標識・信号・屋外で人の顔",
+  2: "中間（約2m）：テレビ・リビング内",
+  3: "中間（約1m）：腕を伸ばしたくらい・作業台全体",
+  4: "中間〜近方（約70cm）：料理・PC画面・調理台の手元",
+  5: "近方（約40cm）：読書・スマホの文字",
+  6: "近方（約33cm）：細かい作業・小さい文字",
+};
 
 export default function ExtraPage() {
   return (
@@ -208,7 +216,7 @@ if (mode === "haloNight") {
                 style={mainButtonStyle(distanceChoice === dist)}
                 onClick={() => handleDistanceSelect(dist)}
               >
-                {q8DistanceText[dist]}
+                {extraDistanceText[dist]}
               </button>
             ))}
             <button
@@ -235,7 +243,7 @@ if (mode === "haloNight") {
                 style={mainButtonStyle(distanceChoice === dist && !premiumOverride)}
                 onClick={() => handleDistanceSelect(dist)}
               >
-                {q8DistanceText[dist]}
+                {extraDistanceText[dist]}
               </button>
             ))}
             <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>
@@ -258,7 +266,7 @@ if (mode === "haloNight") {
                 style={mainButtonStyle(distanceChoice === dist && !premiumOverride)}
                 onClick={() => handleDistanceSelect(dist)}
               >
-                {q8DistanceText[dist]}
+                {extraDistanceText[dist]}
               </button>
             ))}
             <button style={mainButtonStyle(premiumOverride)} onClick={handlePremiumOverride}>
