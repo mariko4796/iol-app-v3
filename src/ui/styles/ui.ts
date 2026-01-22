@@ -33,7 +33,7 @@ export const questionTitle: React.CSSProperties = {
 export const subText: React.CSSProperties = {
   marginBottom: 20,
   color: "#444",
-  fontSize: 16,
+  fontSize: 22,//問題と問題文
   lineHeight: 1.8,
   whiteSpace: "pre-line",
 };
@@ -42,7 +42,7 @@ export const mainButtonStyle = (active = false): React.CSSProperties => ({
   width: "100%",
   padding: "14px 16px",
   marginTop: 8,
-  fontSize: 18,
+  fontSize: 22,//選択肢
   borderRadius: 9999,
   border: active ? "2px solid #00083d" : "1px solid #d4d4d8",
   backgroundColor: active ? "#00083d" : "#f4f4f5",
@@ -90,7 +90,7 @@ export const headerButtonStyle: React.CSSProperties = {
   borderRadius: 9999,
   border: "1px solid #d1d5db",
   backgroundColor: "#ffffff",
-  fontSize: 14,
+  fontSize: 10,
   cursor: "pointer",
   color: "#111827",
 };

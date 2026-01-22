@@ -48,7 +48,7 @@ export default function IntroPage() {
 
   return (
     <section style={pageInner}>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>
+      <h1 style={{ fontSize: 20, marginBottom: 16 }}>
         白内障手術と眼内レンズのお話
       </h1>
 

@@ -12,9 +12,14 @@ import { pageInner, questionTitle, mainButtonStyle, extraDescriptionText } from 
 export default function ExtraPage() {
   return (
     <Suspense fallback={<section style={pageInner}><p>読み込み中...</p></section>}>
-      <ExtraPageInner />
+      <ExtraPageWrapper />
     </Suspense>
   );
+}
+
+function ExtraPageWrapper() {
+  const searchParams = useSearchParams();
+  return <ExtraPageInner key={searchParams.toString()} />;
 }
 
 function ExtraPageInner() {
@@ -34,6 +39,13 @@ function ExtraPageInner() {
   const [distanceChoice, setDistanceChoice] = useState<number | null>(null);
   const [premiumOverride, setPremiumOverride] = useState(false);
   const [premiumChoice, setPremiumChoice] = useState<"EDOF" | "MF" | null>(null);
+ 
+// ★ 追加: mode が変わったら選択状態をリセット
+useEffect(() => {
+  setDistanceChoice(null);
+  setPremiumOverride(false);
+  setPremiumChoice(null);
+}, [searchParams.toString()]);
 
   useEffect(() => {
     if (!modeParam) router.replace("/result");
@@ -47,6 +59,11 @@ function ExtraPageInner() {
     wantsPremium?: boolean;
   }) => {
     setTimeout(() => {
+       // ★ 遷移前に state をリセット
+    setDistanceChoice(null);
+    setPremiumOverride(false);
+    setPremiumChoice(null);
+
       if (mode === "singleFocusChoice") {
         if (choice.wantsPremium) {
           const next = decideNext(flags, { afterRetina, overridePremium: true });
@@ -66,34 +83,32 @@ function ExtraPageInner() {
         return;
       }
 
-      if (mode === "retina") {
-        if (choice.override) {
-          const hasHaloNightRisk = flags.haloAbsoluteNo || flags.nightDrivingOften;
-          if (hasHaloNightRisk) router.push("/extra?mode=haloNight&afterRetina=1&overridePremium=1");
-          else if (flags.requiresExtraByPremiumCompare) router.push("/extra?mode=premiumCompare&afterRetina=1&overridePremium=1");
-          else router.push("/result?overridePremium=1");
-        } else if (choice.distance) {
-          router.push(`/result?distance=${choice.distance}`);
-        }
-        return;
-      }
+if (mode === "retina") {
+  if (choice.override) {
+    const hasHaloNightRisk = flags.haloAbsoluteNo || flags.nightDrivingOften;
+    if (hasHaloNightRisk) {
+  router.push("/extra?mode=haloNight&afterRetina=1");
+} else {
+      router.push("/extra?mode=premiumCompare&afterRetina=1&overridePremium=1");
+    }
+  } else if (choice.distance) {
+    router.push(`/result?distance=${choice.distance}`);
+  }
+  return;
+}
 
-      if (mode === "haloNight") {
-        if (choice.override) {
-          if (flags.requiresExtraByPremiumCompare) {
-            const params = new URLSearchParams();
-            params.set("mode", "premiumCompare");
-            if (afterRetina) params.set("afterRetina", "1");
-            params.set("overridePremium", "1");
-            router.push(`/extra?${params.toString()}`);
-          } else {
-            router.push("/result?overridePremium=1");
-          }
-        } else if (choice.distance) {
-          router.push(`/result?distance=${choice.distance}`);
-        }
-      }
-    }, 400);
+if (mode === "haloNight") {
+  if (choice.override) {
+    const params = new URLSearchParams();
+    params.set("mode", "premiumCompare");
+    if (afterRetina) params.set("afterRetina", "1");
+    params.set("overridePremium", "1");
+    router.push(`/extra?${params.toString()}`);
+  } else if (choice.distance) {
+    router.push(`/result?distance=${choice.distance}`);
+  }
+}
+    }, 800);
   }, [mode, flags, afterRetina, overridePremiumFlag, router]);
 
   // 選択ハンドラー

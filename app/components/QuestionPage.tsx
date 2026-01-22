@@ -53,7 +53,7 @@ export default function QuestionPage({ questionKey }: Props) {
           router.push("/result");
         }
       }
-    }, 400);
+    }, 800);
   };
 
   const showWarning =

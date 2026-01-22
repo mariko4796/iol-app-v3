@@ -42,12 +42,12 @@ export default function AppHeader() {
         <div className="app-header-buttons">
           {!isHome && (
             <button className="header-btn" onClick={handleBack}>
-              ← 戻る
+              戻る
             </button>
           )}
           {!isHome && !isStaffLogs && (
             <button className="header-btn" onClick={handleReset}>
-              最初に戻る
+              最初からやり直す
             </button>
           )}
           <button className="header-btn-staff" onClick={handleStaffLogs}>
