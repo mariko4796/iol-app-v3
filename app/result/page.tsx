@@ -86,35 +86,41 @@ function ResultInner() {
   const extraConfirmations: string[] = [];
   const haloNightRisk = flags.haloAbsoluteNo || flags.nightDrivingOften;
 
-  // Q8との矛盾チェック（追加質問を経由した場合のみ）
-  if (distanceParam && isMono && distanceChoice && answers.q8 && distanceChoice !== answers.q8) {
-    extraConfirmations.push(`【Q8と矛盾】Q8では「${q8DistanceText[answers.q8]}」を選択しましたが、追加質問では「${q8DistanceText[distanceChoice]}」を選択しました。`);
-  }
+  // 追加質問を経由したかどうか
+  const wentThroughExtra = distanceParam !== null || premiumParam !== null || overridePremium;
 
-  if (flags.costPriorityHigh && isMono) {
-    extraConfirmations.push(`【費用とレンズ選択】費用（保険適応内）を優先するご希望があり、保険適応内の単焦点レンズから「${q8DistanceText[distanceChoice!]}」を優先するレンズを選択した。`);
-  }
-
-  if (flags.hasRetinaDisease) {
-    if (overridePremium && (isEDOF || isMF)) {
-      extraConfirmations.push("【網膜疾患とプレミアム】網膜・黄斑・緑内障などの病気がある場合、多焦点／EDOF レンズでは見え方の質が低下しやすいことを説明し、そのリスクを理解したうえでプレミアムレンズ（多焦点／EDOF）を希望した。");
-    } else if (isMono) {
-      extraConfirmations.push("【網膜疾患とプレミアム】網膜・黄斑・緑内障などの病気がある場合、多焦点／EDOF レンズでは見え方の質が低下しやすいことを説明し、安全性を優先して単焦点レンズを選択した。");
+  // 以下は追加質問を経由した場合のみ表示
+  if (wentThroughExtra) {
+    // Q8との矛盾チェック（追加質問で距離を選んだ場合のみ）
+    if (distanceParam && isMono && distanceChoice && answers.q8 && distanceChoice !== answers.q8) {
+      extraConfirmations.push(`【Q8と矛盾】Q8では「${q8DistanceText[answers.q8]}」を選択しましたが、追加質問では「${q8DistanceText[distanceChoice]}」を選択しました。`);
     }
-  }
 
-  if (haloNightRisk) {
-    if (overridePremium && (isEDOF || isMF)) {
-      extraConfirmations.push("【夜間運転とハロー・グレア】夜間運転やハロー・グレアのリスクについて説明し、そのリスクを理解したうえでプレミアムレンズ（多焦点／EDOF）を希望した。");
-    } else if (isMono) {
-      extraConfirmations.push("【夜間運転とハロー・グレア】夜間運転やハロー・グレアのリスクについて説明し、夜間の安全性を優先して単焦点レンズを選択した。");
+    if (flags.costPriorityHigh && isMono && distanceParam) {
+      extraConfirmations.push(`【費用とレンズ選択】費用（保険適応内）を優先するご希望があり、保険適応内の単焦点レンズから「${q8DistanceText[distanceChoice!]}」を優先するレンズを選択した。`);
     }
-  }
 
-  if (premiumChoice === "EDOF") {
-    extraConfirmations.push("【EDOF vs 多焦点】EDOF レンズと多焦点レンズの違いを説明したうえで、夜間のギラつきを少なくしつつ遠方〜中間をバランスよく見たいという希望から、EDOF レンズを優先する選択をした。");
-  } else if (premiumChoice === "MF") {
-    extraConfirmations.push("【EDOF vs 多焦点】EDOF レンズと多焦点レンズの違いを説明したうえで、近方までできるだけ裸眼で見たいという希望を優先し、多焦点レンズを優先する選択をした。");
+    if (flags.hasRetinaDisease) {
+      if (overridePremium && (isEDOF || isMF)) {
+        extraConfirmations.push("【網膜疾患とプレミアム】網膜・黄斑・緑内障などの病気がある場合、多焦点／EDOF レンズでは見え方の質が低下しやすいことを説明し、そのリスクを理解したうえでプレミアムレンズ（多焦点／EDOF）を希望した。");
+      } else if (isMono && distanceParam) {
+        extraConfirmations.push("【網膜疾患とプレミアム】網膜・黄斑・緑内障などの病気がある場合、多焦点／EDOF レンズでは見え方の質が低下しやすいことを説明し、安全性を優先して単焦点レンズを選択した。");
+      }
+    }
+
+    if (haloNightRisk) {
+      if (overridePremium && (isEDOF || isMF)) {
+        extraConfirmations.push("【夜間運転とハロー・グレア】夜間運転やハロー・グレアのリスクについて説明し、そのリスクを理解したうえでプレミアムレンズ（多焦点／EDOF）を希望した。");
+      } else if (isMono && distanceParam) {
+        extraConfirmations.push("【夜間運転とハロー・グレア】夜間運転やハロー・グレアのリスクについて説明し、夜間の安全性を優先して単焦点レンズを選択した。");
+      }
+    }
+
+    if (premiumChoice === "EDOF") {
+      extraConfirmations.push("【EDOF vs 多焦点】EDOF レンズと多焦点レンズの違いを説明したうえで、夜間のギラつきを少なくしつつ遠方〜中間をバランスよく見たいという希望から、EDOF レンズを優先する選択をした。");
+    } else if (premiumChoice === "MF") {
+      extraConfirmations.push("【EDOF vs 多焦点】EDOF レンズと多焦点レンズの違いを説明したうえで、近方までできるだけ裸眼で見たいという希望を優先し、多焦点レンズを優先する選択をした。");
+    }
   }
 
   const handlePrintClick = () => {
