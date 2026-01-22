@@ -23,6 +23,7 @@ export type DerivedFlags = {
 export function deriveFlags(answers: Answers, rawScores: Scores): DerivedFlags {
   // Q7: 費用（v3の連番）
   const costPriorityHigh = answers.q7 === 1 || answers.q7 === 2;
+  const costPriorityLow = answers.q7 === 3 || answers.q7 === 4 || answers.q7 === 5; // 保険優先でない
 
   // Q10: 眼疾患（v3の連番、旧Q11）
   const hasRetinaDisease =
@@ -59,9 +60,15 @@ export function deriveFlags(answers: Answers, rawScores: Scores): DerivedFlags {
   const hasPremiumWish =
     strong2orMore || premiumRawTopIsEDOF || premiumRawTopIsMF;
 
+  // ★ 修正: requiresExtraByCost は保険優先(Q7=1,2)かつ複数距離希望
   const requiresExtraByCost = costPriorityHigh && strong2orMore;
-  const requiresExtraByRetina = hasRetinaDisease;
-  const requiresExtraByHaloNight = haloAbsoluteNo || nightDrivingOften;
+
+  // ★ 修正: requiresExtraByRetina は眼疾患あり かつ 保険優先でない(Q7=3,4,5)
+  const requiresExtraByRetina = hasRetinaDisease && costPriorityLow;
+
+  // ★ 修正: requiresExtraByHaloNight はハロー/夜間運転リスクあり かつ 保険優先でない(Q7=3,4,5)
+  const requiresExtraByHaloNight = (haloAbsoluteNo || nightDrivingOften) && costPriorityLow;
+
   const requiresExtraByPremiumCompare =
     edofVsMfClose &&
     (premiumRawTopIsEDOF || premiumRawTopIsMF) &&
