@@ -1,13 +1,14 @@
 // app/extra/page.tsx
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAnswers } from "@/app/contexts/AnswersContext";
 import { computeScores } from "@/src/domain/lens/scoring/computeScores";
 import { decideNext, type ExtraMode } from "@/src/domain/lens/scoring/decideNext";
 import { q8DistanceText } from "@/src/domain/lens/lensTypes";
 import { pageInner, questionTitle, mainButtonStyle, extraDescriptionText } from "@/src/ui/styles/ui";
+
 
 export default function ExtraPage() {
   return (
@@ -39,7 +40,8 @@ function ExtraPageInner() {
   const [distanceChoice, setDistanceChoice] = useState<number | null>(null);
   const [premiumOverride, setPremiumOverride] = useState(false);
   const [premiumChoice, setPremiumChoice] = useState<"EDOF" | "MF" | null>(null);
- 
+  const [showScrollHint, setShowScrollHint] = useState(false);
+
 // ★ 追加: mode が変わったら選択状態をリセット
 useEffect(() => {
   setDistanceChoice(null);
@@ -50,6 +52,30 @@ useEffect(() => {
   useEffect(() => {
     if (!modeParam) router.replace("/result");
   }, [modeParam, router]);
+
+  // スクロールが必要かチェック & スクロールしたら非表示
+useEffect(() => {
+  const checkScroll = () => {
+    const scrollable = document.documentElement.scrollHeight > window.innerHeight;
+    const hasScrolled = window.scrollY > 30;
+    
+    if (scrollable && !hasScrolled) {
+      setShowScrollHint(true);
+    } else {
+      setShowScrollHint(false);
+    }
+  };
+
+  const timer = setTimeout(checkScroll, 100);
+  window.addEventListener("scroll", checkScroll);
+  window.addEventListener("resize", checkScroll);
+
+  return () => {
+    clearTimeout(timer);
+    window.removeEventListener("scroll", checkScroll);
+    window.removeEventListener("resize", checkScroll);
+  };
+}, [mode]);
 
   // 遷移処理
   const navigateNext = useCallback((choice: {
@@ -139,6 +165,34 @@ if (mode === "haloNight") {
   const distanceOptions = [1, 2, 3, 4, 5, 6] as const;
 
   return (
+  <>
+
+    {/* スクロール注意表示 */}
+{showScrollHint && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: 100,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "90%",
+      maxWidth: 500,
+      background: "radial-gradient(ellipse at center, rgba(15, 30, 78, 0.95) 0%, rgba(15, 30, 78, 0.7) 60%, rgba(15, 30, 78, 0) 100%)",
+      color: "white",
+      padding: "24px 50px",
+      borderRadius: 40,
+      fontSize: 28,
+      fontWeight: 600,
+      zIndex: 1000,
+      textAlign: "center" as const,
+    }}
+    onClick={() => setShowScrollHint(false)}
+  >
+    ↓ 下にスクロールして
+    選択肢をご確認ください
+  </div>
+)}
+
     <section style={pageInner}>
       {mode === "singleFocusChoice" && (
         <>
@@ -235,5 +289,6 @@ if (mode === "haloNight") {
         </>
       )}
     </section>
+    </>
   );
 }
