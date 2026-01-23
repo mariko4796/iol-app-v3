@@ -100,7 +100,7 @@ function ResultInner() {
       extraConfirmations.push(`【費用とレンズ選択】費用（保険適応内）を優先するご希望があり、保険適応内の単焦点レンズから「${q8DistanceText[distanceChoice!]}」を優先するレンズを選択した。`);
     }
 
-    if (flags.hasRetinaDisease) {
+    if (flags.requiresExtraByRetina) {
       if (overridePremium && (isEDOF || isMF)) {
         extraConfirmations.push("【網膜疾患とプレミアム】網膜・黄斑・緑内障などの病気がある場合、多焦点／EDOF レンズでは見え方の質が低下しやすいことを説明し、そのリスクを理解したうえでプレミアムレンズ（多焦点／EDOF）を希望した。");
       } else if (isMono && distanceParam) {
@@ -108,7 +108,7 @@ function ResultInner() {
       }
     }
 
-    if (haloNightRisk) {
+    if (flags.requiresExtraByHaloNight) {
       if (overridePremium && (isEDOF || isMF)) {
         extraConfirmations.push("【夜間運転とハロー・グレア】夜間運転やハロー・グレアのリスクについて説明し、そのリスクを理解したうえでプレミアムレンズ（多焦点／EDOF）を希望した。");
       } else if (isMono && distanceParam) {
