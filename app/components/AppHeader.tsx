@@ -20,6 +20,11 @@ export default function AppHeader() {
     }
   };
 
+  const handleGoHome = () => {
+  reset();
+  router.push("/");
+};
+
   const handleStaffLogs = () => {
     router.push("/staff-logs");
   };
@@ -39,21 +44,26 @@ export default function AppHeader() {
           <span className="app-header-title">眼内レンズ選択サポート</span>
         </div>
 
-        <div className="app-header-buttons">
-          {!isHome && (
-            <button className="header-btn" onClick={handleBack}>
-              戻る
-            </button>
-          )}
-          {!isHome && !isStaffLogs && (
-            <button className="header-btn" onClick={handleReset}>
-              最初からやり直す
-            </button>
-          )}
-          <button className="header-btn-staff" onClick={handleStaffLogs}>
-            スタッフ用
-          </button>
-        </div>
+<div className="app-header-buttons">
+  {!isHome && !isStaffLogs && (
+    <button className="header-btn" onClick={handleBack}>
+      戻る
+    </button>
+  )}
+  {!isHome && !isStaffLogs && (
+    <button className="header-btn" onClick={handleReset}>
+      最初からやり直す
+    </button>
+  )}
+  {isStaffLogs && (
+    <button className="header-btn" onClick={handleGoHome}>
+      最初に戻る
+    </button>
+  )}
+  <button className="header-btn-staff" onClick={handleStaffLogs}>
+    スタッフ用
+  </button>
+</div>
       </div>
     </header>
   );

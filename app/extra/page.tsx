@@ -90,7 +90,6 @@ useEffect(() => {
     distance?: number | null;
     premium?: "EDOF" | "MF" | null;
     override?: boolean;
-    wantsPremium?: boolean;
   }) => {
     setTimeout(() => {
        // ★ 遷移前に state をリセット
@@ -99,15 +98,11 @@ useEffect(() => {
     setPremiumChoice(null);
 
       if (mode === "singleFocusChoice") {
-        if (choice.wantsPremium) {
-          const next = decideNext(flags, { afterRetina, overridePremium: true });
-          if (next.type === "extra") router.push(`/extra?mode=${next.mode}&overridePremium=1`);
-          else router.push("/result?overridePremium=1");
-        } else if (choice.distance) {
-          router.push(`/result?distance=${choice.distance}`);
-        }
-        return;
-      }
+  if (choice.distance) {
+    router.push(`/result?distance=${choice.distance}`);
+  }
+  return;
+}
 
       if (mode === "premiumCompare" && choice.premium) {
         const params = new URLSearchParams();
@@ -150,12 +145,6 @@ if (mode === "haloNight") {
     setDistanceChoice(dist);
     setPremiumOverride(false);
     navigateNext({ distance: dist });
-  };
-
-  const handleWantsPremium = () => {
-    setDistanceChoice(null);
-    setPremiumOverride(false);
-    navigateNext({ wantsPremium: true });
   };
 
   const handlePremiumOverride = () => {
@@ -219,12 +208,6 @@ if (mode === "haloNight") {
                 {extraDistanceText[dist]}
               </button>
             ))}
-            <button
-              style={mainButtonStyle(distanceChoice === null && !premiumOverride)}
-              onClick={handleWantsPremium}
-            >
-              自費（EDOF / 多焦点）も検討したい
-            </button>
           </div>
         </>
       )}

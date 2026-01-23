@@ -51,43 +51,43 @@ body {
 .app-header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 42px;
 }
 
 .app-header-logo {
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   border-radius: 8px;
 }
 
 .app-header-title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
-  color: #ffffff;
+  color: #a4c9f9;
 }
 
 .app-header-buttons {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 /* ナビボタン（eye-meetingsタグ風） */
 .header-btn {
-  padding: 8px 20px;
+  padding: 8px 16px;
   border-radius: 9999px;
-  border: 1px solid #3a4a6a;
+  border: 1px solid #25324d;
   background: transparent;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   cursor: pointer;
-  color: #94a3b8;
+  color: #e8eaed;
   transition: all 0.2s ease;
 }
 
 .header-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #4a5a7a;
+  background: #1e3a5f;
+  border-color: #1e3a5f;
   color: #cbd5e1;
 }
 
@@ -96,7 +96,7 @@ body {
   padding: 8px 12px;
   border: none;
   background: transparent;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   color: #60a5fa;
@@ -358,6 +358,11 @@ body {
     align-items: flex-start;
     gap: 12px;
   }
+
+  .app-header-logo {
+  width: 58px;
+  height: 58px;
+}
 
   .app-header-buttons {
     width: 100%;
