@@ -7,11 +7,7 @@ import AppFooter from "./components/AppFooter";
 
 export const metadata: Metadata = {
   title: "眼内レンズ選択サポート | eye-meetings",
-  description: "白内障手術でのレンズ選択をサポートするアプリケーション",
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
+  description: "白内障手術のための眼内レンズ選択支援ツール",
 };
 
 export default function RootLayout({
