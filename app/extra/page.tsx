@@ -30,6 +30,7 @@ const EXTRA_AUDIO_URLS: Record<ExtraMode, string> = {
     "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/premiumCompare.mp3",
 };
 
+
 export default function ExtraPage() {
   return (
     <Suspense fallback={<section style={pageInner}><p>読み込み中...</p></section>}>
