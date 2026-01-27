@@ -18,6 +18,18 @@ const extraDistanceText: Record<number, string> = {
   6: "近方（約33cm）：細かい作業・小さい文字",
 };
 
+// ★ 追加質問ページ用の音声URL
+const EXTRA_AUDIO_URLS: Record<ExtraMode, string> = {
+  singleFocusChoice:
+    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/singleFocusChoice.mp3",
+  retina:
+    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/retina.mp3",
+  haloNight:
+    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/haloNight.mp3",
+  premiumCompare:
+    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/premiumCompare.mp3",
+};
+
 export default function ExtraPage() {
   return (
     <Suspense fallback={<section style={pageInner}><p>読み込み中...</p></section>}>
@@ -50,6 +62,9 @@ function ExtraPageInner() {
   const [premiumChoice, setPremiumChoice] = useState<"EDOF" | "MF" | null>(null);
   const [showScrollHint, setShowScrollHint] = useState(false);
 
+    // ★ 追加質問ページ用の音声オブジェクト
+  const extraAudioRef = useRef<HTMLAudioElement | null>(null);
+
 // ★ 追加: mode が変わったら選択状態をリセット
 useEffect(() => {
   setDistanceChoice(null);
@@ -73,6 +88,31 @@ useEffect(() => {
       setShowScrollHint(false);
     }
   };
+
+  // ★ mode ごとに追加質問の音声を自動再生
+  useEffect(() => {
+    const url = EXTRA_AUDIO_URLS[mode];
+    if (!url) return;
+
+    const audio = new Audio(url);
+    extraAudioRef.current = audio;
+
+    const timer = setTimeout(() => {
+      audio
+        .play()
+        .catch(() => {
+          // 自動再生がブロックされた場合は何もしない
+        });
+    }, 500); // 0.5秒待ってから再生
+
+    // mode が変わる／ページを離れるときに停止
+    return () => {
+      clearTimeout(timer);
+      audio.pause();
+      extraAudioRef.current = null;
+    };
+  }, [mode]);
+
 
   const timer = setTimeout(checkScroll, 100);
   window.addEventListener("scroll", checkScroll);
