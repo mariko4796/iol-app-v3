@@ -38,7 +38,7 @@ const QUESTION_AUDIO_URLS: Partial<Record<QuestionKey, string>> = {
   q7: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q7.mp3",
   q8: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q8.mp3",
   q9: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q9.mp3",
-  q10: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q10.mp3",
+  q10: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q10n.mp3",
   q11: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q11.mp3",
 };
 
