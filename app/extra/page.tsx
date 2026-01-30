@@ -35,13 +35,13 @@ const extraDistanceText: Record<number, string> = {
 // 追加質問ページ用の音声URL
 const EXTRA_AUDIO_URLS: Record<ExtraMode, string> = {
   singleFocusChoice:
-    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/singleFocusChoice.mp3",
+    "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/singleFocusChoice.mp3",
   retina:
-    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/retina.mp3",
+    "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/retina.mp3",
   haloNight:
-    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/haloNight.mp3",
+    "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/haloNight.mp3",
   premiumCompare:
-    "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/premiumCompare.mp3",
+    "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/premiumCompare.mp3",
 };
 
 export default function ExtraPage() {

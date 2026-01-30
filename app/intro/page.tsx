@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { pageInner } from "@/src/ui/styles/ui";
 
 const VIDEO_URL =
-  "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-videos/iolapp_intro_v2_720p.mp4";
+  "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-videos/iol_video_intro_v3_44.mp4";
 
 export default function IntroPage() {
   const router = useRouter();

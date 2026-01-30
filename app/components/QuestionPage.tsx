@@ -29,17 +29,17 @@ const iconMap: Record<string, string> = {
 
 // ★ 質問ごとの音声URLマップ（まずは q1 だけ）
 const QUESTION_AUDIO_URLS: Partial<Record<QuestionKey, string>> = {
-  q1: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q1.mp3",
-  q2: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q2.mp3",
-  q3: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q3.mp3",
-  q4: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q4.mp3",
-  q5: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q5.mp3",
-  q6: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q6.mp3",
-  q7: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q7.mp3",
-  q8: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q8.mp3",
-  q9: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q9.mp3",
-  q10: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q10n.mp3",
-  q11: "https://parmafajzkhcfnpsecsy.supabase.co/storage/v1/object/public/iolapp-audio/q11.mp3",
+  q1: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q1.mp3",
+  q2: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q2.mp3",
+  q3: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q3.mp3",
+  q4: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q4.mp3",
+  q5: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q5.mp3",
+  q6: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q6.mp3",
+  q7: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q7.mp3",
+  q8: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q8.mp3",
+  q9: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q9.mp3",
+  q10: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q10n.mp3",
+  q11: "https://vkbkpmnpkqhrwvdhmdqk.supabase.co/storage/v1/object/public/iolapp-audio/q11.mp3",
 };
 
 export default function QuestionPage({ questionKey }: Props) {
