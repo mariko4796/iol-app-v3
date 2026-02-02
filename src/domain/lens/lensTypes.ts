@@ -33,7 +33,7 @@ export const distanceText: Record<LensKey, string> = {
 export const q8DistanceText: Record<number, string> = {
   1: "約5m以上:道路標識・信号・屋外で人の顔",
   2: "約2m:テレビ・リビング内",
-  3: "約1m:腕を伸ばしたくらい・作業台全体・少し離れた手",
+  3: "約1m:作業台全体・少し離れた手",
   4: "約70cm:料理・PC画面・調理台の手元",
   5: "約40cm:読書・スマホの文字",
   6: "約33cm:細かい作業・小さい文字",
