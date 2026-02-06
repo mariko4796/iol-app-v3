@@ -24,6 +24,7 @@ export function generateWarnings(params: WarningsParams): Warnings {
   const isEDOF = finalKey === "EDOF";
   const isMF = finalKey === "MF";
   const isFarMono = finalKey === "farMono";
+  const isMidMono = finalKey === "midMono";
   const isNearMono = finalKey === "nearMono";
 
   // Q11: 視力履歴（v3連番）
@@ -33,9 +34,15 @@ export function generateWarnings(params: WarningsParams): Warnings {
   if (visionHistory === 1 && isFarMono) {
     visionWarning =
       "これまで近くが裸眼でよく見える近視ぎみの状態でしたが、今回「遠方にピントを合わせる単焦点レンズ」を選択されたため、術後は近く（読書・スマホなど）を裸眼で見ることは難しくなります。近方作業にはメガネが必要になる可能性が高いことをご理解ください。";
+  } else if (visionHistory === 1 && isMidMono) {
+    visionWarning =
+      "これまで近くが裸眼でよく見える近視ぎみの状態でしたが、今回「中間にピントを合わせる単焦点レンズ」を選択されたため、術後は近く（読書・スマホなど）を裸眼で見ることが難しくなる可能性があります。近方作業にはメガネが必要になることをご理解ください。";
   } else if (visionHistory === 2 && isNearMono) {
     visionWarning =
       "これまで遠くが裸眼で比較的見えていた遠視・老視ぎみの状態でしたが、今回「近方にピントを合わせる単焦点レンズ」を選択されたため、術後は遠くを見るときにメガネが必要になる可能性があります。";
+  } else if (visionHistory === 2 && isMidMono) {
+    visionWarning =
+      "これまで遠くが裸眼で比較的見えていた遠視・老視ぎみの状態でしたが、今回「中間にピントを合わせる単焦点レンズ」を選択されたため、術後は遠くを見るときにメガネが必要になる可能性があります。";
   }
 
   let glassesWarning = "";
